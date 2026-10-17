@@ -48,7 +48,12 @@ public class ApiClient implements AutoCloseable {
     public APIResponse put(String path, Object body, String contentType) {
         return request.put(path, jsonBody(body, contentType));
     }
-    public APIResponse patch(String path, Object body) { return request.patch(path, jsonBody(body)); }
+    public APIResponse patch(String path, Object body) {
+        return patch(path, body, "application/json");
+    }
+    public APIResponse patch(String path, Object body, String contentType) {
+        return request.patch(path, jsonBody(body, contentType));
+    }
     public APIResponse delete(String path)             { return request.delete(path); }
 
     public static <T> T parse(APIResponse response, Class<T> type) {
