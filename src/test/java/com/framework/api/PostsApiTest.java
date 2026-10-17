@@ -1,11 +1,16 @@
 package com.framework.api;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.framework.api.models.Post;
 import com.framework.api.services.PostsService;
 import com.framework.base.BaseApiTest;
 import com.microsoft.playwright.APIResponse;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import static org.testng.Assert.*;
 
@@ -73,6 +78,33 @@ public class PostsApiTest extends BaseApiTest {
              ApiClient captureClient = new ApiClient(null, capture.baseUrl())) {
             APIResponse captureResponse = new PostsService(captureClient).update(1, payload);
             assertEquals(captureResponse.status(), 204);
+            assertEquals(capture.contentType(), "application/json; charset=UTF-8");
+        }
+    }
+
+    @Test(description = "PATCH /posts/1 returns the exact simulated response and sends the expected Content-Type")
+    public void patchPostTitle() {
+        Map<String, String> payload = Map.of("title", "foo");
+        APIResponse response = posts.patch(1, payload);
+        JsonNode post = ApiClient.parse(response, JsonNode.class);
+
+        assertTrue(post.isObject(), "PATCH response should be a JSON object");
+        Set<String> fields = new HashSet<>();
+        post.fieldNames().forEachRemaining(fields::add);
+        assertEquals(fields, Set.of("userId", "id", "title", "body"));
+        assertEquals(post.get("userId").intValue(), 1);
+        assertEquals(post.get("id").intValue(), 1);
+        assertEquals(post.get("title").textValue(), "foo");
+        assertEquals(post.get("body").textValue(),
+                "quia et suscipit\nsuscipit recusandae consequuntur expedita et cum\n"
+                        + "reprehenderit molestiae ut ut quas totam\n"
+                        + "nostrum rerum est autem sunt rem eveniet architecto");
+
+        // JSONPlaceholder accepts simulated writes but does not persist them. Observe the
+        // outbound header independently against a local capture endpoint.
+        try (OutboundRequestCaptureServer capture = new OutboundRequestCaptureServer();
+             ApiClient captureClient = new ApiClient(null, capture.baseUrl())) {
+            new PostsService(captureClient).patch(1, payload);
             assertEquals(capture.contentType(), "application/json; charset=UTF-8");
         }
     }

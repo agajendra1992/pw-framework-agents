@@ -21,5 +21,8 @@ public class PostsService {
     public APIResponse update(int id, Post p){
         return client.put("/posts/" + id, p, "application/json; charset=UTF-8");
     }
+    public APIResponse patch(int id, Object body) {
+        return client.patch("/posts/" + id, body, "application/json; charset=UTF-8");
+    }
     public APIResponse delete(int id)        { return client.delete("/posts/" + id); }
 }
