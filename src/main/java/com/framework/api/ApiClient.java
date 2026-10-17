@@ -20,13 +20,15 @@ public class ApiClient implements AutoCloseable {
 
     public ApiClient() { this(null); }
 
-    public ApiClient(String bearerToken) {
+    public ApiClient(String bearerToken) { this(bearerToken, Config.apiBaseUrl()); }
+
+    public ApiClient(String bearerToken, String baseUrl) {
         this.playwright = Playwright.create();
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
         if (bearerToken != null) headers.put("Authorization", "Bearer " + bearerToken);
         this.request = playwright.request().newContext(new APIRequest.NewContextOptions()
-                .setBaseURL(Config.apiBaseUrl())
+                .setBaseURL(baseUrl)
                 .setExtraHTTPHeaders(headers));
     }
 
@@ -38,7 +40,10 @@ public class ApiClient implements AutoCloseable {
         return request.get(path, options);
     }
 
-    public APIResponse post(String path, Object body)  { return request.post(path, jsonBody(body)); }
+    public APIResponse post(String path, Object body)  { return post(path, body, "application/json"); }
+    public APIResponse post(String path, Object body, String contentType) {
+        return request.post(path, jsonBody(body, contentType));
+    }
     public APIResponse put(String path, Object body)   { return request.put(path, jsonBody(body)); }
     public APIResponse patch(String path, Object body) { return request.patch(path, jsonBody(body)); }
     public APIResponse delete(String path)             { return request.delete(path); }
@@ -53,9 +58,13 @@ public class ApiClient implements AutoCloseable {
     }
 
     private static RequestOptions jsonBody(Object body) {
+        return jsonBody(body, "application/json");
+    }
+
+    private static RequestOptions jsonBody(Object body, String contentType) {
         try {
             return RequestOptions.create()
-                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Content-Type", contentType)
                     .setData(MAPPER.writeValueAsString(body));
         } catch (Exception e) {
             throw new IllegalArgumentException("Cannot serialise request body", e);
@@ -64,7 +73,31 @@ public class ApiClient implements AutoCloseable {
 
     @Override
     public void close() {
-        request.dispose();
-        playwright.close();
+        Throwable failure = null;
+        try {
+            request.dispose();
+        } catch (Throwable exception) {
+            failure = exception;
+        }
+
+        try {
+            playwright.close();
+        } catch (Throwable exception) {
+            if (failure == null) {
+                failure = exception;
+            } else {
+                failure.addSuppressed(exception);
+            }
+        }
+
+        if (failure instanceof RuntimeException exception) {
+            throw exception;
+        }
+        if (failure instanceof Error error) {
+            throw error;
+        }
+        if (failure != null) {
+            throw new IllegalStateException("Failed to close API client", failure);
+        }
     }
 }
