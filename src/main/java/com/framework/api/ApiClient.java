@@ -73,7 +73,31 @@ public class ApiClient implements AutoCloseable {
 
     @Override
     public void close() {
-        request.dispose();
-        playwright.close();
+        Throwable failure = null;
+        try {
+            request.dispose();
+        } catch (Throwable exception) {
+            failure = exception;
+        }
+
+        try {
+            playwright.close();
+        } catch (Throwable exception) {
+            if (failure == null) {
+                failure = exception;
+            } else {
+                failure.addSuppressed(exception);
+            }
+        }
+
+        if (failure instanceof RuntimeException exception) {
+            throw exception;
+        }
+        if (failure instanceof Error error) {
+            throw error;
+        }
+        if (failure != null) {
+            throw new IllegalStateException("Failed to close API client", failure);
+        }
     }
 }
