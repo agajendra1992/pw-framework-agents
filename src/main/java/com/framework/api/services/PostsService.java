@@ -15,7 +15,9 @@ public class PostsService {
     public APIResponse list()                { return client.get("/posts"); }
     public APIResponse listByUser(int userId){ return client.get("/posts", Map.of("userId", userId)); }
     public APIResponse get(int id)           { return client.get("/posts/" + id); }
-    public APIResponse create(Post post)     { return client.post("/posts", post); }
+    public APIResponse create(Post post)     {
+        return client.post("/posts", post, "application/json; charset=UTF-8");
+    }
     public APIResponse update(int id, Post p){ return client.put("/posts/" + id, p); }
     public APIResponse delete(int id)        { return client.delete("/posts/" + id); }
 }

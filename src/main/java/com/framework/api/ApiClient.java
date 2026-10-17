@@ -38,7 +38,10 @@ public class ApiClient implements AutoCloseable {
         return request.get(path, options);
     }
 
-    public APIResponse post(String path, Object body)  { return request.post(path, jsonBody(body)); }
+    public APIResponse post(String path, Object body)  { return post(path, body, "application/json"); }
+    public APIResponse post(String path, Object body, String contentType) {
+        return request.post(path, jsonBody(body, contentType));
+    }
     public APIResponse put(String path, Object body)   { return request.put(path, jsonBody(body)); }
     public APIResponse patch(String path, Object body) { return request.patch(path, jsonBody(body)); }
     public APIResponse delete(String path)             { return request.delete(path); }
@@ -53,9 +56,13 @@ public class ApiClient implements AutoCloseable {
     }
 
     private static RequestOptions jsonBody(Object body) {
+        return jsonBody(body, "application/json");
+    }
+
+    private static RequestOptions jsonBody(Object body, String contentType) {
         try {
             return RequestOptions.create()
-                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Content-Type", contentType)
                     .setData(MAPPER.writeValueAsString(body));
         } catch (Exception e) {
             throw new IllegalArgumentException("Cannot serialise request body", e);

@@ -33,15 +33,16 @@ public class PostsApiTest extends BaseApiTest {
         for (Post p : list) assertEquals(p.userId, Integer.valueOf(1));
     }
 
-    @Test(description = "POST /posts creates a post")
+    @Test(description = "POST /posts returns a simulated response; JSONPlaceholder does not persist writes")
     public void createPost() {
-        Post payload = new Post(1, "e2e title", "e2e body");
+        Post payload = new Post(1, "foo", "bar");
         APIResponse res = posts.create(payload);
         assertEquals(res.status(), 201);
         Post created = ApiClient.parse(res, Post.class);
-        assertNotNull(created.id);
-        assertEquals(created.title, payload.title);
-        assertEquals(created.body, payload.body);
+        assertEquals(created.title, "foo");
+        assertEquals(created.body, "bar");
+        assertEquals(created.userId, Integer.valueOf(1));
+        assertEquals(created.id, Integer.valueOf(101));
     }
 
     @Test(description = "PUT /posts/1 updates a post")
