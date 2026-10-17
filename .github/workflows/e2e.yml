@@ -1,0 +1,22 @@
+name: E2E
+on:
+  push: { branches: [main] }
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: 17, cache: maven }
+      - name: Install Playwright browsers
+        run: mvn -B -q compile exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps chromium"
+      - run: mvn -B test
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: reports-and-traces
+          path: |
+            target/surefire-reports/
+            artifacts/

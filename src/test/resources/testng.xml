@@ -1,0 +1,15 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="E2E Suite" parallel="classes" thread-count="3">
+  <test name="API Tests">
+    <packages><package name="com.framework.api"/></packages>
+  </test>
+  <test name="UI Tests">
+    <packages><package name="com.framework.ui"/></packages>
+  </test>
+  <test name="E2E Tests">
+    <packages><package name="com.framework.e2e"/></packages>
+  </test>
+  <test name="BDD Scenarios">
+    <packages><package name="com.framework.bdd"/></packages>
+  </test>
+</suite>
