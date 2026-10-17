@@ -20,13 +20,15 @@ public class ApiClient implements AutoCloseable {
 
     public ApiClient() { this(null); }
 
-    public ApiClient(String bearerToken) {
+    public ApiClient(String bearerToken) { this(bearerToken, Config.apiBaseUrl()); }
+
+    public ApiClient(String bearerToken, String baseUrl) {
         this.playwright = Playwright.create();
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
         if (bearerToken != null) headers.put("Authorization", "Bearer " + bearerToken);
         this.request = playwright.request().newContext(new APIRequest.NewContextOptions()
-                .setBaseURL(Config.apiBaseUrl())
+                .setBaseURL(baseUrl)
                 .setExtraHTTPHeaders(headers));
     }
 

@@ -33,7 +33,7 @@ public class PostsApiTest extends BaseApiTest {
         for (Post p : list) assertEquals(p.userId, Integer.valueOf(1));
     }
 
-    @Test(description = "POST /posts returns a simulated response; JSONPlaceholder does not persist writes")
+    @Test(description = "POST /posts returns a simulated response and sends the expected Content-Type")
     public void createPost() {
         Post payload = new Post(1, "foo", "bar");
         APIResponse res = posts.create(payload);
@@ -43,6 +43,16 @@ public class PostsApiTest extends BaseApiTest {
         assertEquals(created.body, "bar");
         assertEquals(created.userId, Integer.valueOf(1));
         assertEquals(created.id, Integer.valueOf(101));
+
+        // JSONPlaceholder's POST response covers its simulated response contract. A separate,
+        // local capture endpoint observes the actual outbound header without attributing a
+        // fabricated response to JSONPlaceholder or creating another behavior test.
+        try (OutboundRequestCaptureServer capture = new OutboundRequestCaptureServer();
+             ApiClient captureClient = new ApiClient(null, capture.baseUrl())) {
+            APIResponse captureResponse = new PostsService(captureClient).create(payload);
+            assertEquals(captureResponse.status(), 204);
+            assertEquals(capture.contentType(), "application/json; charset=UTF-8");
+        }
     }
 
     @Test(description = "PUT /posts/1 updates a post")
