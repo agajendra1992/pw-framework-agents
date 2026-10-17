@@ -34,7 +34,7 @@ public class PostsApiTest extends BaseApiTest {
         APIResponse res = posts.listByUser(1);
         assertEquals(res.status(), 200);
         Post[] list = ApiClient.parse(res, Post[].class);
-        assertTrue(list.length > 0);
+        assertEquals(list.length, 10, "Filtered response should contain exactly 10 posts");
         for (Post p : list) assertEquals(p.userId, Integer.valueOf(1));
     }
 
