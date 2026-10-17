@@ -8,7 +8,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** Local-only HTTP endpoint that records an incoming POST Content-Type header. */
+/** Local-only HTTP endpoint that records an incoming request's Content-Type header. */
 final class OutboundRequestCaptureServer implements AutoCloseable {
     private final HttpServer server;
     private final AtomicReference<String> contentType = new AtomicReference<>();

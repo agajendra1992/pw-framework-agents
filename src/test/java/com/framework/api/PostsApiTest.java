@@ -55,12 +55,26 @@ public class PostsApiTest extends BaseApiTest {
         }
     }
 
-    @Test(description = "PUT /posts/1 updates a post")
+    @Test(description = "PUT /posts/1 returns a simulated response and sends the expected Content-Type")
     public void updatePost() {
-        Post payload = new Post(1, "updated", "updated body");
+        Post payload = new Post(1, "foo", "bar");
+        payload.id = 1;
         APIResponse res = posts.update(1, payload);
         assertEquals(res.status(), 200);
-        assertEquals(ApiClient.parse(res, Post.class).title, "updated");
+        Post updated = ApiClient.parse(res, Post.class);
+        assertEquals(updated.id, Integer.valueOf(1));
+        assertEquals(updated.title, "foo");
+        assertEquals(updated.body, "bar");
+        assertEquals(updated.userId, Integer.valueOf(1));
+
+        // JSONPlaceholder simulates PUT responses and does not persist writes. A local capture
+        // endpoint independently observes the outbound header without changing remote data.
+        try (OutboundRequestCaptureServer capture = new OutboundRequestCaptureServer();
+             ApiClient captureClient = new ApiClient(null, capture.baseUrl())) {
+            APIResponse captureResponse = new PostsService(captureClient).update(1, payload);
+            assertEquals(captureResponse.status(), 204);
+            assertEquals(capture.contentType(), "application/json; charset=UTF-8");
+        }
     }
 
     @Test(description = "DELETE /posts/1 succeeds")

@@ -18,6 +18,8 @@ public class PostsService {
     public APIResponse create(Post post)     {
         return client.post("/posts", post, "application/json; charset=UTF-8");
     }
-    public APIResponse update(int id, Post p){ return client.put("/posts/" + id, p); }
+    public APIResponse update(int id, Post p){
+        return client.put("/posts/" + id, p, "application/json; charset=UTF-8");
+    }
     public APIResponse delete(int id)        { return client.delete("/posts/" + id); }
 }
