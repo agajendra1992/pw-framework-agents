@@ -4,3 +4,4 @@ artifacts/
 .idea/
 *.iml
 .DS_Store
+.github/agent-runs/
